@@ -10,6 +10,8 @@ import com.binarybhaskar.branchit.screens.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
+import com.binarybhaskar.branchit.repository.UserRepository
+import com.binarybhaskar.branchit.model.UserProfile
 
 enum class MainScreen(val label: String) {
     Home("Home"),
@@ -17,7 +19,8 @@ enum class MainScreen(val label: String) {
     Post("Post"),
     Chat("Chat"),
     Profile("Profile"),
-    Updates("Updates") // Hidden, only for notification
+    Updates("Updates"), // Hidden, only for notification
+    Settings("Settings") // Hidden, only for settings
 }
 
 // Multiplatform device size detection
@@ -36,14 +39,25 @@ private val screenIcons = mapOf(
 @Composable
 @Preview
 fun App() {
-    // Simulate login state (replace with persistent logic as needed)
-    var isLoggedIn by rememberSaveable { mutableStateOf(false) }
+    // Observe login state from repository
+    val userState by UserRepository.currentUser.collectAsState()
     var selectedScreen by rememberSaveable { mutableStateOf(MainScreen.Home) }
 
-    if (!isLoggedIn) {
+    if (userState == null) {
         LoginScreen(
             isLoading = false,
-            onGoogleLogin = { isLoggedIn = true }
+            onGoogleLogin = {
+                // For MVP: use dummy profile, replace with real Google login
+                UserRepository.loginWithGoogle(
+                    UserProfile(
+                        uid = "demoUid",
+                        username = "ggvstudent",
+                        displayName = "GGV Student",
+                        ggvInfo = "B.Tech CSE 2025",
+                        email = "student@ggv.edu.in"
+                    )
+                )
+            }
         )
     } else {
         val largeScreen = isLargeScreen()
@@ -83,7 +97,9 @@ fun App() {
                         if (showUpdates) {
                             UpdatesScreen()
                         } else {
-                            MainScreenContent(selectedScreen)
+                            MainScreenContent(selectedScreen) {
+                                selectedScreen = MainScreen.Settings
+                            }
                         }
                     }
                 }
@@ -119,7 +135,9 @@ fun App() {
                     if (showUpdates) {
                         UpdatesScreen()
                     } else {
-                        MainScreenContent(selectedScreen)
+                        MainScreenContent(selectedScreen) {
+                            selectedScreen = MainScreen.Settings
+                        }
                     }
                 }
             }
@@ -128,13 +146,14 @@ fun App() {
 }
 
 @Composable
-fun MainScreenContent(screen: MainScreen) {
+fun MainScreenContent(screen: MainScreen, onEditProfile: () -> Unit = {}) {
     when (screen) {
         MainScreen.Home -> HomeScreen()
-        MainScreen.Connect -> SettingsScreen()
+        MainScreen.Connect -> ConnectScreen()
         MainScreen.Post -> PostScreen()
         MainScreen.Chat -> ChatScreen()
-        MainScreen.Profile -> ProfileScreen()
+        MainScreen.Profile -> ProfileScreen(onEditProfile = onEditProfile)
+        MainScreen.Settings -> SettingsScreen()
         else -> {}
     }
 }
