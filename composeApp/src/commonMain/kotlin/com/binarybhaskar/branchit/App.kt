@@ -1,9 +1,12 @@
 package com.binarybhaskar.branchit
 
+import UserProfileCard
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import com.binarybhaskar.branchit.screens.*
@@ -152,7 +155,17 @@ fun MainScreenContent(screen: MainScreen, onEditProfile: () -> Unit = {}) {
         MainScreen.Connect -> ConnectScreen()
         MainScreen.Post -> PostScreen()
         MainScreen.Chat -> ChatScreen()
-        MainScreen.Profile -> ProfileScreen(onEditProfile = onEditProfile)
+        MainScreen.Profile -> {
+            val user = UserRepository.currentUser.collectAsState().value
+            if (user != null) {
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(Modifier.height(24.dp))
+                    UserProfileCard(user = user)
+                }
+            } else {
+                CircularProgressIndicator(Modifier)
+            }
+        }
         MainScreen.Settings -> SettingsScreen()
         else -> {}
     }

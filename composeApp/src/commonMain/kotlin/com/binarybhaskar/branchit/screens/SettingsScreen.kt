@@ -39,6 +39,15 @@ fun SettingsScreen() {
     val platform = getPlatform().name
     val uniqueUsername = rememberSaveable { mutableStateOf("user123") } // Replace with actual logic
 
+    // --- MVP Features State ---
+    var isProfilePublic by rememberSaveable { mutableStateOf(true) }
+    val blockedUsers = remember { mutableStateListOf("blockeduser1", "blockeduser2") }
+    var showBlockedDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var notificationsEnabled by rememberSaveable { mutableStateOf(true) }
+    var isSuspended by rememberSaveable { mutableStateOf(false) } // For demo
+    var themeDark by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -170,7 +179,7 @@ fun SettingsScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Divider()
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
             // Only show theming on Android
             if (platform == "Android") {
@@ -183,7 +192,7 @@ fun SettingsScreen() {
                     Text("Dynamic Color")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(modifier = Modifier.height(16.dp))
             }
             // Resume section
@@ -231,6 +240,80 @@ fun SettingsScreen() {
             Spacer(modifier = Modifier.height(16.dp))
             Text("About", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.align(Alignment.Start))
             Text("BranchIT App\nVersion 1.0.0", fontSize = 14.sp, modifier = Modifier.align(Alignment.Start))
+
+            // --- Privacy Section ---
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Privacy", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.align(Alignment.Start))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Profile Visibility:", modifier = Modifier.weight(1f))
+                Switch(checked = isProfilePublic, onCheckedChange = { isProfilePublic = it })
+                Text(if (isProfilePublic) "Public" else "Private", modifier = Modifier.padding(start = 8.dp))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { showBlockedDialog = true }, modifier = Modifier.align(Alignment.Start)) {
+                Text("Blocked Users")
+            }
+            if (showBlockedDialog) {
+                AlertDialog(
+                    onDismissRequest = { showBlockedDialog = false },
+                    title = { Text("Blocked Users") },
+                    text = {
+                        if (blockedUsers.isEmpty()) Text("No blocked users.")
+                        else Column { blockedUsers.forEach { Text(it) } }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showBlockedDialog = false }) { Text("Close") }
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            // --- Notification Preferences (Bonus) ---
+            Text("Notifications", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.align(Alignment.Start))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Enable Notifications", modifier = Modifier.weight(1f))
+                Switch(checked = notificationsEnabled, onCheckedChange = { notificationsEnabled = it })
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            // --- Theme Toggle (Bonus) ---
+            Text("Theme", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.align(Alignment.Start))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Dark Mode", modifier = Modifier.weight(1f))
+                Switch(checked = themeDark, onCheckedChange = { themeDark = it })
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            // --- Account Suspension Info (Bonus) ---
+            if (isSuspended) {
+                Text("Your account is currently suspended. Please contact support.", color = Color.Red, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            // --- Logout ---
+            Button(onClick = { showLogoutDialog = true }, colors = ButtonDefaults.outlinedButtonColors(), modifier = Modifier.align(Alignment.Start)) {
+                Text("Logout")
+            }
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = { Text("Logout") },
+                    text = { Text("Are you sure you want to logout?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showLogoutDialog = false
+                            // TODO: Call logout logic
+                        }) { Text("Logout") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
+                    }
+                )
+            }
         }
     }
 }
